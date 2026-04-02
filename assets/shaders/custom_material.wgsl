@@ -6,7 +6,8 @@
 
 @group(#{MATERIAL_BIND_GROUP}) @binding(0) var texture: texture_2d<f32>;
 @group(#{MATERIAL_BIND_GROUP}) @binding(1) var texture_sampler: sampler;
-// @group(#{MATERIAL_BIND_GROUP}) @binding(2) var<uniform> warp_amount: f32;
+@group(#{MATERIAL_BIND_GROUP}) @binding(2) var<uniform> color: vec4<f32>;
+@group(#{MATERIAL_BIND_GROUP}) @binding(3) var<uniform> age_ratio: f32;
 
 const PI: f32 = acos(-1.0);
 
@@ -31,6 +32,7 @@ fn fragment(
     mesh: VertexOutput,
 ) -> FragmentOutput {
     let texture = textureSample(texture, texture_sampler, mesh.uv);
+    let alpha = texture.r * sin(age_ratio * PI);
 
-    return FragmentOutput(vec4f(vec3f(1.0), texture.r));
+    return FragmentOutput(vec4f(color.rgb, alpha));
 }
