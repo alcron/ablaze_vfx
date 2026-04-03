@@ -1,6 +1,8 @@
-mod particles;
+// mod particles;
+mod uv_distortion;
 
-use crate::particles::ParticlesPlugin;
+// use crate::particles::ParticlesPlugin;
+use crate::uv_distortion::UVDistortionPlugin;
 use bevy::{post_process::bloom::Bloom, prelude::*, render::view::Hdr};
 
 fn main() {
@@ -13,7 +15,8 @@ fn main() {
                 }),
                 ..default()
             }),
-            ParticlesPlugin,
+            // ParticlesPlugin,
+            UVDistortionPlugin,
         ))
         .add_systems(Startup, setup)
         .add_systems(Update, close_on_esc)
@@ -48,7 +51,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..default()
         })
         .with_child((
-            Text::new("AlphaBlend"),
+            // Text::new("AlphaBlend"),
+            Text::new("UV Distortion"),
             TextFont {
                 font: asset_server.load("fonts/Roboto-Regular.ttf"),
                 font_size: 24.0,
