@@ -1,8 +1,11 @@
 pub mod components;
 
-use self::components::{Emitter, Particle};
+use self::components::{Emitter, EmitterDebugCircle, Particle};
 use crate::particles::components::{EmissionShape, Lifetime, ParticleConfig};
-use bevy::{pbr::Material, prelude::*, render::render_resource::AsBindGroup, shader::ShaderRef};
+use bevy::{
+    math::Isometry3d, pbr::Material, prelude::*, render::render_resource::AsBindGroup,
+    shader::ShaderRef,
+};
 use rand::RngExt;
 use std::f32::consts::TAU;
 
@@ -43,16 +46,38 @@ impl Plugin for ParticlesPlugin {
     }
 }
 
-fn setup(mut commands: Commands) {
-    commands.spawn((
-        Emitter {
-            shape: EmissionShape::Circle { radius: 0.2 },
-            particles_lifetime: Lifetime::Random { min: 3.0, max: 5.0 },
-            ..default()
-        },
-        Transform::from_xyz(0.0, 0.0, 0.0)
-            .with_rotation(Quat::from_rotation_x(std::f32::consts::FRAC_PI_2)),
-    ));
+fn setup(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut std_materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let radius = 0.2;
+    commands
+        .spawn((
+            Emitter {
+                shape: EmissionShape::Circle { radius },
+                particles_lifetime: Lifetime::Random { min: 3.0, max: 5.0 },
+                ..default()
+            },
+            Transform::from_xyz(0.0, 0.0, 0.0)
+                .with_rotation(Quat::from_rotation_x(std::f32::consts::FRAC_PI_2)),
+        ))
+        .with_child((
+            // For more examples check https://bevy.org/examples/math/render-primitives/
+            EmitterDebugCircle,
+            Mesh3d(meshes.add(Circle::new(radius))),
+            MeshMaterial3d(std_materials.add(StandardMaterial {
+                base_color: Color::srgba(1.0, 0.0, 0.0, 0.3),
+                alpha_mode: AlphaMode::Blend,
+                unlit: true,
+                cull_mode: None,
+                ..default()
+            })),
+            // Counter-rotate to undo parent's 90° X rotation so the disc faces the camera
+            // Slight Z offset to prevent z-fighting
+            Transform::from_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2))
+                .with_translation(Vec3::new(0.0, 0.001, 0.0)),
+        ));
 }
 
 fn update_emitters(
@@ -61,11 +86,20 @@ fn update_emitters(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<CustomMaterial>>,
     asset_server: Res<AssetServer>,
-    mut emitters: Query<(Entity, &mut Emitter)>,
+    mut emitters: Query<(Entity, &mut Emitter, &Transform)>,
+    mut gizmos: Gizmos,
 ) {
     let mut rng = rand::rng();
-    for (entity, mut emitter) in emitters.iter_mut() {
+    for (entity, mut emitter, transform) in emitters.iter_mut() {
         emitter.spawn_timer.tick(time.delta());
+
+        if let EmissionShape::Circle { radius } = emitter.shape {
+            gizmos.circle(
+                Isometry3d::new(transform.translation, Quat::IDENTITY),
+                radius,
+                Color::srgb(1.0, 0.0, 0.0),
+            );
+        }
 
         if emitter.spawn_timer.just_finished() {
             let particle_offset = match emitter.shape {
@@ -95,7 +129,7 @@ fn update_emitters(
                 MeshMaterial3d(materials.add(CustomMaterial {
                     texture: Some(asset_server.load("textures/GlowingDot.png")),
                     // color: Srgba::hex("#82FF00FF").unwrap().into(),
-                    color: Color::hsv(80.0, 1.0, 5.0).into(),
+                    color: Color::hsv(80.0, 1.0, 1.0).into(),
                     age_ratio: 0.0,
                     alpha_mode: AlphaMode::Blend,
                 })),
@@ -125,7 +159,3 @@ fn update_particles(
         }
     }
 }
-
-// fn generate_particle(config: ParticleConfig) -> impl Bundle {
-//     // let offset =
-// }

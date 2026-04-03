@@ -80,3 +80,6 @@ pub enum EmissionShape {
         angle: f32,
     },
 }
+
+#[derive(Component)]
+pub struct EmitterDebugCircle;
