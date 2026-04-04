@@ -1,12 +1,15 @@
 // mod particles;
 // mod uv_distortion;
 // mod fresnel;
-mod volumetric_fog;
+// mod volumetric_fog;
+mod polar_coordinates;
 
 // use crate::particles::ParticlesPlugin;
 // use crate::uv_distortion::UVDistortionPlugin;
 // use crate::fresnel::FresnelPlugin;
-use crate::volumetric_fog::VolumetricFogPlugin;
+// use crate::volumetric_fog::VolumetricFogPlugin;
+use crate::polar_coordinates::PolarCoordinatesPlugin;
+
 use bevy::{post_process::bloom::Bloom, prelude::*, render::view::Hdr};
 
 fn main() {
@@ -22,7 +25,8 @@ fn main() {
             // ParticlesPlugin,
             // UVDistortionPlugin,
             // FresnelPlugin,
-            VolumetricFogPlugin,
+            // VolumetricFogPlugin,
+            PolarCoordinatesPlugin,
         ))
         .add_systems(Startup, setup)
         .add_systems(Update, close_on_esc)
@@ -57,7 +61,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..default()
         })
         .with_child((
-            Text::new("Volumetric fog"),
+            Text::new("Polar coodinates"),
             TextFont {
                 font: asset_server.load("fonts/Roboto-Regular.ttf"),
                 font_size: 24.0,
