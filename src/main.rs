@@ -2,15 +2,19 @@
 // mod uv_distortion;
 // mod fresnel;
 // mod volumetric_fog;
-mod polar_coordinates;
+// mod polar_coordinates;
+mod water;
 
 // use crate::particles::ParticlesPlugin;
 // use crate::uv_distortion::UVDistortionPlugin;
 // use crate::fresnel::FresnelPlugin;
 // use crate::volumetric_fog::VolumetricFogPlugin;
-use crate::polar_coordinates::PolarCoordinatesPlugin;
+// use crate::polar_coordinates::PolarCoordinatesPlugin;
+use crate::water::WaterPlugin;
 
-use bevy::{post_process::bloom::Bloom, prelude::*, render::view::Hdr};
+use bevy::{
+    core_pipeline::prepass::DepthPrepass, post_process::bloom::Bloom, prelude::*, render::view::Hdr,
+};
 
 fn main() {
     App::new()
@@ -26,7 +30,8 @@ fn main() {
             // UVDistortionPlugin,
             // FresnelPlugin,
             // VolumetricFogPlugin,
-            PolarCoordinatesPlugin,
+            // PolarCoordinatesPlugin,
+            WaterPlugin,
         ))
         .add_systems(Startup, setup)
         .add_systems(Update, close_on_esc)
@@ -46,6 +51,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // camera
     commands.spawn((
         Camera3d::default(),
+        DepthPrepass,
         Hdr::default(),
         Bloom::default(),
         Transform::from_xyz(0.0, 0.0, 2.0).looking_at(Vec3::ZERO, Vec3::Y),
@@ -61,7 +67,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..default()
         })
         .with_child((
-            Text::new("Polar coodinates"),
+            Text::new("Water"),
             TextFont {
                 font: asset_server.load("fonts/Roboto-Regular.ttf"),
                 font_size: 24.0,
