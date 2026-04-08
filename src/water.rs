@@ -29,6 +29,9 @@ struct CustomMaterial {
     #[texture(5)]
     #[sampler(6)]
     noise_texture: Option<Handle<Image>>,
+    #[texture(7)]
+    #[sampler(8)]
+    sparkles_noise_texture: Option<Handle<Image>>,
 
     alpha_mode: AlphaMode,
 }
@@ -83,6 +86,16 @@ fn setup(
             top_crest_color: Srgba::hex("#00FFFF").unwrap().into(),
             noise_texture: Some(asset_server.load_with_settings(
                 "textures/Water_NoisePerlin.png",
+                |s: &mut ImageLoaderSettings| {
+                    s.sampler = ImageSampler::Descriptor(ImageSamplerDescriptor {
+                        address_mode_u: ImageAddressMode::Repeat,
+                        address_mode_v: ImageAddressMode::Repeat,
+                        ..default()
+                    });
+                },
+            )),
+            sparkles_noise_texture: Some(asset_server.load_with_settings(
+                "textures/T_Perlin_Noise_M.png",
                 |s: &mut ImageLoaderSettings| {
                     s.sampler = ImageSampler::Descriptor(ImageSamplerDescriptor {
                         address_mode_u: ImageAddressMode::Repeat,

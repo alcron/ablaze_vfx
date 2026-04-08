@@ -13,6 +13,8 @@
 @group(#{MATERIAL_BIND_GROUP}) @binding(4) var<uniform> top_crest_color: vec4f;
 @group(#{MATERIAL_BIND_GROUP}) @binding(5) var noise_texture: texture_2d<f32>;
 @group(#{MATERIAL_BIND_GROUP}) @binding(6) var noise_texture_sampler: sampler;
+@group(#{MATERIAL_BIND_GROUP}) @binding(7) var sparkles_noise_texture: texture_2d<f32>;
+@group(#{MATERIAL_BIND_GROUP}) @binding(8) var sparkles_noise_texture_sampler: sampler;
 
 const PI: f32 = acos(-1.0);
 
@@ -95,15 +97,16 @@ fn fragment(
     let noise_uv_2 = generate_polar_uv(mesh.uv, uv_scale, noise_origin_2, move_speed + 0.1);
     let noise_1 = textureSample(noise_texture, noise_texture_sampler, noise_uv_1).r;
     let noise_2 = textureSample(noise_texture, noise_texture_sampler, noise_uv_2).r;
+    let sparkles_noise = textureSample(sparkles_noise_texture, sparkles_noise_texture_sampler, mesh.uv * 20.0).r;
 
     let waves_mask = (noise_1 + noise_2) * 0.5;
     let dark_area_mask = 1.0 - smoothstep(0.0, 0.2, waves_mask);
-    // TODO Make grains on crest top using T_Perlin_Noise_M.png
-    let light_area_mask = smoothstep(0.27, 1.0, waves_mask);
+    // TODO: Find better mask generation for water crests
+    let light_area_mask = smoothstep(0.2, 0.5, waves_mask) * sparkles_noise;
     let base_with_crest_color = mix(dark_water_color.rgb, top_crest_color.rgb, waves_mask);
     let waves_color = mix(base_with_crest_color, dark_water_color.rgb, dark_area_mask);
-    let color = mix(waves_color, darker_color.rgb, circle);
+    let waves_with_chrest_color = mix(waves_color, vec3f(1.0), light_area_mask);
+    let color = mix(waves_with_chrest_color, darker_color.rgb, circle);
 
-    // return FragmentOutput(vec4f(color, depth_fade));
-    return FragmentOutput(vec4f(vec3f(light_area_mask), 1.0));
+    return FragmentOutput(vec4f(color, depth_fade));
 }
